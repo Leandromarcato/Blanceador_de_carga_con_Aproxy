@@ -1,0 +1,39 @@
+1) creamos una red para contendores 
+
+docker network create myred
+
+
+2) creamos el contendor mysql
+ docker run -d -p 3306:3306 --name mi-contenedor-mysql -e MYSQL_ROOT_PASSWORD=12345 -v D:\balanceador_con_Haproxy\db:/var/lib/mysql mysql:debian
+
+3) creacion de contenedores Apache (web1 y Web2)
+docker run --name web1  -p 8081:80 -v "D:\balanceador_con_Haproxy:/var/www/html" -d php:apache-bullseye
+docker run --name web2  -p 8082:80 -v "D:\balanceador_con_Haproxy:/var/www/html" -d php:apache-bullseye
+
+
+4) creacion del balaeanceador Haproxy 
+ docker run --name haproxy-container --network myred -p 8085:80 -v D:\balanceador_con_Haproxy\haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro -d haproxy:latest
+
+5) incluimos los contendores a la red network 
+
+docker network connect myred web1
+docker network connect myred web2
+docker network connect myred mi-contenedor-mysql
+
+6) dentro de los contenedores web1 y web2 
+
+a) primero ingresamos a dentro del contendor a travez del siguiente comando
+docker exec -it web2 bash
+
+b) una vez a dentro introducimos el siguiente comando
+docker-php-ext-install mysqli
+
+luego el siguiente comando
+docker-php-ext-enable mysqli
+
+una vez hecho todo esto debia funcionar correctamente el balanceador 
+
+
+
+
+
